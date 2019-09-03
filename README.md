@@ -9,6 +9,7 @@
 #### How to use:
 - Build the project
 - Run CS:GO
+- Run the .exe
 - Press INSERT to toggle wallhack on/off
 - Hold MIDDLE mouse button to activate aimlocking
 
