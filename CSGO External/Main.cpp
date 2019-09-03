@@ -258,8 +258,8 @@ void WallLoop(struct Player player)
     if (GetAsyncKeyState(VK_INSERT))
     {
         WhToggled = !WhToggled;
-        if (WhToggled) std::cout << "On" << std::endl;
-        else std::cout << "Off" << std::endl;
+        if (WhToggled) std::cout << "Walls On" << std::endl;
+        else std::cout << "Walls Off" << std::endl;
         Sleep(500);
     }
 
