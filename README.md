@@ -19,3 +19,5 @@ It was developed and tested purely AGAINST BOTS (a couple of times on community 
 
 #### Detection status
 Currently undetected by VAC but since I am releasing it publicly use at your own risk!
+
+![alt text](https://i.imgur.com/2Xf5AFB.png)
