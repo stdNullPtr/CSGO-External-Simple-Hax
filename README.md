@@ -1,9 +1,9 @@
 # CS:GO External Hack
 #### Features:
 - Wall hack (Using glow)
-Red - enemy with a ranged weapon (equipped)
-Blue - enemy with an AWP (equipped)
-Green - enemy with knife/grenade (equipped)
+  - Red - enemy with a ranged weapon (equipped)
+  - Blue - enemy with an AWP (equipped)
+  - Green - enemy with knife/grenade (equipped)
 - Aim hack
 
 #### How to use:
