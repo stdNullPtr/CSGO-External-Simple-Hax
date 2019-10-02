@@ -177,14 +177,15 @@ namespace win_raii
     public:
         // RPM/WPM 
         template<typename T>
-        std::optional<T> SafeReadMemory(const std::uintptr_t address_ptr) const noexcept(false)
+        T SafeReadMemory(const std::uintptr_t address_ptr) const noexcept(false)
         {
-            std::optional<T> length;
+            T length;      
 
-            if ((!ReadProcessMemory(this->m_processHandle.get(), reinterpret_cast<void*>(address_ptr), std::addressof(length), sizeof(length), 0))) 
+            if ((!ReadProcessMemory(this->m_processHandle.get(), reinterpret_cast<void*>(address_ptr), std::addressof(length), sizeof(length), 0)))
             {
-                return std::nullopt;
+                return T();
             }
+
             return length;
         }
         template<typename T>
