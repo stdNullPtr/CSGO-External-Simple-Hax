@@ -133,7 +133,6 @@
     <ClInclude Include="Offsets.hpp" />
     <ClInclude Include="Util_Vector.hpp" />
     <ClInclude Include="WeaponType.hpp" />
-    <ClInclude Include="XorCompileTime.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

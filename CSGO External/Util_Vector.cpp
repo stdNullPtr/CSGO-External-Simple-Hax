@@ -36,7 +36,7 @@ void Vector2D::clear()
 
 float Vector2D::lengthSqr()
 {
-    return (pow(this->x, 2) + pow(this->y, 2));
+    return (float)(pow(this->x, 2) + pow(this->y, 2));
 }
 
 Vector2D Vector2D::operator+(const Vector2D& v) const
@@ -183,7 +183,7 @@ void Vector::clear()
 
 float Vector::lengthSqr()
 {
-    return (pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2));
+    return (float)(pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2));
 }
 
 Vector Vector::operator+(const Vector& v) const

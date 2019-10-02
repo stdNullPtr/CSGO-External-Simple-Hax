@@ -109,7 +109,7 @@ inline float GetDistance(const Vector& to, const Vector& from)
     float deltaY = to.y - from.y;
     float deltaZ = to.z - from.z;
 
-    return sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+    return (float)sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
 }
 
 #define vec3_t Vector
