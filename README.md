@@ -21,6 +21,10 @@ The entire idea of the cheat is educational (believe it or not).
 It's a nice way to learn how to manipulate game memory and learn some math concepts in a 3D space (Damn you CalcAngle and Vectors...)
 It was developed and tested purely AGAINST BOTS (a couple of times on community servers .. oopsie) and never in competitive games.
 
+#### Current state
+Currently the only optimized part of the cheat is the Memory Manager. Heavy refactoring on everything else since there are lots of
+bad practises and ... everything is inside "main.cpp"...
+
 #### Detection status
 Currently undetected by VAC but since I am releasing it publicly use at your own risk!
 
