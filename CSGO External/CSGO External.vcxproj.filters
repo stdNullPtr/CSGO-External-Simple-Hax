@@ -35,7 +35,7 @@
     <ClInclude Include="WeaponType.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Consts.hpp">
+    <ClInclude Include="XorCompileTime.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -4,16 +4,32 @@
 #include "Offsets.hpp"
 #include "WeaponType.hpp"
 #include "Util_Vector.hpp"
-#include "Consts.hpp"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
 #define M_RADPI (180.0 / M_PI)
 #define M_DEGRAD (M_PI / 180.0)
 
-MemoryManager* Mem;
-
 bool WhToggled = false;
+
+DWORD ClientBase = 0;
+DWORD EngineBase = 0;
+
+#pragma region Misc
+
+const DWORD SLEEP = 2;
+const int PLAYERCNT = 32;
+
+#pragma endregion
+
+
+#pragma region AimBot
+
+const float MINFOV = 2.0f; //3
+const int BONEID = 8;	   //8 - head
+const float SMOOTH = 20;   //40
+
+#pragma endregion
 
 #pragma region Structs
 
@@ -23,21 +39,21 @@ struct LocalPlayer
     int Team;
     int Health;
     int InCross;
-    void Read()
+    void Read(win_raii::SafeMemory* mem)
     {
-        Local = Mem->Read<DWORD>(Mem->ClientDLL_Base + dwLocalPlayer);
+        Local = *mem->SafeReadMemory<DWORD>(ClientBase + dwLocalPlayer);
 
         if (Local != NULL)
         {
-            Team = Mem->Read<int>(Local + m_iTeamNum);
-            Health = Mem->Read<int>(Local + m_iHealth);
-            InCross = Mem->Read<int>(Local + m_iCrosshairId);
+            Team = *mem->SafeReadMemory<int>(Local + m_iTeamNum);
+            Health = *mem->SafeReadMemory<int>(Local + m_iHealth);
+            InCross = *mem->SafeReadMemory<int>(Local + m_iCrosshairId);
         }
     }
-    Vector GetLocalEye()
+    Vector GetLocalEye(win_raii::SafeMemory* mem)
     {
-        Vector origin = Mem->Read<Vector>(Local + m_vecOrigin);
-        Vector viewOffset = Mem->Read<Vector>(Local + m_vecViewOffset);
+        Vector origin = *mem->SafeReadMemory<Vector>(Local + m_vecOrigin);
+        Vector viewOffset = *mem->SafeReadMemory<Vector>(Local + m_vecViewOffset);
         return origin + viewOffset;
     }
 }LocalPlayer;
@@ -48,15 +64,15 @@ struct Player
     int Team;
     int Health;
     DWORD GlowIndex;
-    void Read(int p)
+    void Read(int p, win_raii::SafeMemory* mem)
     {
-        Entity = Mem->Read<DWORD>(Mem->ClientDLL_Base + dwEntityList + ((p - 1) * 0x10));
+        Entity = *mem->SafeReadMemory<DWORD>(ClientBase + dwEntityList + ((p - 1) * 0x10));
         //Checking if it is a valid entity
         if (Entity != NULL)
         {
-            GlowIndex = Mem->Read<DWORD>(Entity + m_iGlowIndex);
-            Team = Mem->Read<int>(Entity + m_iTeamNum);
-            Health = Mem->Read<int>(Entity + m_iHealth);
+            GlowIndex = *mem->SafeReadMemory<DWORD>(Entity + m_iGlowIndex);
+            Team = *mem->SafeReadMemory<int>(Entity + m_iTeamNum);
+            Health = *mem->SafeReadMemory<int>(Entity + m_iHealth);
         }
     }
 }PlayerList[PLAYERCNT];
@@ -65,17 +81,18 @@ struct Player
 
 #pragma region AimBot
 
-Vector BonePos(int base, int boneId)
+Vector BonePos(int base, int boneId, win_raii::SafeMemory* mem)
 {
     DWORD boneBase;
-    boneBase = Mem->Read<DWORD>(base + m_dwBoneMatrix);
+    boneBase = *mem->SafeReadMemory<DWORD>(base + m_dwBoneMatrix);
 
     Vector vBone;
     DWORD Base = boneBase + (0x30 * boneId);
 
-    vBone.x = Mem->Read<float>(Base + 0x0C);
-    vBone.y = Mem->Read<float>(Base + 0x1C);
-    vBone.z = Mem->Read<float>(Base + 0x2C);
+    /// TODO: Read all at once
+    vBone.x = *mem->SafeReadMemory<float>(Base + 0x0C);
+    vBone.y = *mem->SafeReadMemory<float>(Base + 0x1C);
+    vBone.z = *mem->SafeReadMemory<float>(Base + 0x2C);
 
     return vBone;
 }
@@ -120,13 +137,13 @@ float GetFOV(const Vector& Src, const Vector& Dst)
     return sqrt(Delta.x * Delta.x + Delta.y * Delta.y + Delta.z * Delta.z);
 }
 
-int GetClosestEnt(DWORD clientState)
+int GetClosestEnt(DWORD clientState, win_raii::SafeMemory* mem)
 {
     int index = -1;
 
     for (int i = 1; i <= PLAYERCNT; i++)
     {
-        PlayerList[i].Read(i);
+        PlayerList[i].Read(i, mem);
 
         if (PlayerList[i].Entity == NULL)
             continue;
@@ -135,11 +152,11 @@ int GetClosestEnt(DWORD clientState)
         if (PlayerList[i].Health < 1)
             continue;
 
-        Vector currentAng = Mem->Read<Vector>(clientState + dwClientState_ViewAngles);
+        Vector currentAng = *mem->SafeReadMemory<Vector>(clientState + dwClientState_ViewAngles);
 
-        Vector enemyHeadPos = BonePos(PlayerList[i].Entity, 8);
+        Vector enemyHeadPos = BonePos(PlayerList[i].Entity, 8, mem);
 
-        Vector localEye = LocalPlayer.GetLocalEye();
+        Vector localEye = LocalPlayer.GetLocalEye(mem);
 
         Vector delta = localEye - enemyHeadPos;
 
@@ -155,24 +172,24 @@ int GetClosestEnt(DWORD clientState)
     return index;
 }
 
-void AimLoop()
+void AimLoop(win_raii::SafeMemory* mem)
 {
     if (!GetAsyncKeyState(VK_MBUTTON)) return;
 
     int index = -1;
 
-    DWORD clientState = Mem->Read<DWORD>(Mem->EngineDLL_Base + dwClientState);
+    DWORD clientState = *mem->SafeReadMemory<DWORD>(EngineBase + dwClientState);
 
-    Vector currentAng = Mem->Read<Vector>(clientState + dwClientState_ViewAngles);
+    Vector currentAng = *mem->SafeReadMemory<Vector>(clientState + dwClientState_ViewAngles);
 
-    index = GetClosestEnt(clientState);
+    index = GetClosestEnt(clientState, mem);
 
     if (index == -1)
         return;
 
-    Vector enemyHeadPos = BonePos(PlayerList[index].Entity, BONEID);
+    Vector enemyHeadPos = BonePos(PlayerList[index].Entity, BONEID, mem);
 
-    Vector delta = LocalPlayer.GetLocalEye() - enemyHeadPos;
+    Vector delta = LocalPlayer.GetLocalEye(mem) - enemyHeadPos;
 
     Vector finalAng = CalculateAngle(delta);
 
@@ -194,7 +211,7 @@ void AimLoop()
     {
         NormalizeAngles(&currentAng);
         ClampAngles(&currentAng);
-        Mem->Write<Vector>(clientState + dwClientState_ViewAngles, currentAng);
+        mem->SafeWriteMemory<Vector>(clientState + dwClientState_ViewAngles, currentAng);
 
         //Sleep(1);
         loop++;
@@ -228,12 +245,12 @@ struct GlowStruct
     int m_nNextFreeSlot;
 }glowStr;
 
-void Glow(DWORD GlowIndex, float R, float G, float B)
+void Glow(DWORD GlowIndex, float R, float G, float B, win_raii::SafeMemory* mem)
 {
-    DWORD GlowBase = Mem->Read<DWORD>(Mem->ClientDLL_Base + dwGlowObjectManager);
+    DWORD GlowBase = *mem->SafeReadMemory<DWORD>(ClientBase + dwGlowObjectManager);
     DWORD glowstrBase = GlowBase + (GlowIndex * 0x38) + 0x4;
 
-    glowStr = Mem->Read<GlowStruct>(glowstrBase);
+    glowStr = *mem->SafeReadMemory<GlowStruct>(glowstrBase);
 
     glowStr.R = R;
     glowStr.G = G;
@@ -242,18 +259,18 @@ void Glow(DWORD GlowIndex, float R, float G, float B)
     glowStr.m_bRenderWhenOccluded = true;
     glowStr.m_bRenderWhenUnoccluded = false;
 
-    Mem->Write<GlowStruct>(glowstrBase, glowStr);
+    mem->SafeWriteMemory<GlowStruct>(glowstrBase, glowStr);
 }
 
-int GetWeapon(DWORD player)
+int GetWeapon(DWORD player, win_raii::SafeMemory* mem)
 {
-    DWORD Weapon = Mem->Read<DWORD>(player + m_hActiveWeapon);
+    DWORD Weapon = *mem->SafeReadMemory<DWORD>(player + m_hActiveWeapon);
     DWORD duck = Weapon & 0xFFF;
-    DWORD horse = Mem->Read<DWORD>(Mem->ClientDLL_Base + dwEntityList + (duck - 1) * 0x10);
-    return Mem->Read<int>(horse + m_iItemDefinitionIndex);
+    DWORD horse = *mem->SafeReadMemory<DWORD>(ClientBase + dwEntityList + (duck - 1) * 0x10);
+    return *mem->SafeReadMemory<int>(horse + m_iItemDefinitionIndex);
 }
 
-void WallLoop(struct Player player)
+void WallLoop(struct Player player, win_raii::SafeMemory* mem)
 {
     if (GetAsyncKeyState(VK_INSERT))
     {
@@ -265,33 +282,33 @@ void WallLoop(struct Player player)
 
     if (!WhToggled) return;
 
-    int cock = GetWeapon(player.Entity);
+    int cock = GetWeapon(player.Entity, mem);
 
     if (cock == WEAPON_AWP)
     {
-        Glow(player.GlowIndex, 0, 0, 1); //blue
+        Glow(player.GlowIndex, 0, 0, 1, mem); //blue
     }
     else if ((cock >= WEAPON_KNIFE && cock <= WEAPON_KNIFE_T) || cock >= WEAPON_KNIFE_BAYONET) //non-shooting weaps
     {
-        Glow(player.GlowIndex, 0, 1, 0); //green
+        Glow(player.GlowIndex, 0, 1, 0, mem); //green
     }
     else
     {
-        Glow(player.GlowIndex, 1, 0, 0); //red	
+        Glow(player.GlowIndex, 1, 0, 0, mem); //red	
     }
 }
 
 #pragma endregion
 
-void MainLoop()
+void MainLoop(win_raii::SafeMemory *mem)
 {
     while (true)
     {
-        LocalPlayer.Read();
+        LocalPlayer.Read(mem);
 
         for (int i = 1; i <= PLAYERCNT; i++)
         {
-            PlayerList[i].Read(i);
+            PlayerList[i].Read(i, mem);
 
             if (PlayerList[i].Entity == NULL)
                 continue;
@@ -300,34 +317,23 @@ void MainLoop()
             if (PlayerList[i].Health < 1)
                 continue;
 
-            WallLoop(PlayerList[i]);
+            WallLoop(PlayerList[i], mem);
         }
-        AimLoop();
+        AimLoop(mem);
 
         Sleep(SLEEP);
     }
 }
 
-char* EncryptDecrypt(char* str, int size)
-{
-    char key[3] = { 'F', 'E', 'L' };
-    char* output = str;
-
-    for (int i = 0; i < size; i++)
-        output[i] = str[i] ^ key[i % (sizeof(key) / sizeof(char))];
-
-    return output;
-}
-
 int main()
 {
-    Mem = new MemoryManager();
+    win_raii::SafeMemory mem(L"csgo.exe", win_raii::SafeMemory_AllAccess, win_raii::SafeMemory::ConstructProcessName());
+    EngineBase = *mem.GetModuleBaseAddress(L"engine.dll");
+    ClientBase = *mem.GetModuleBaseAddress(L"client_panorama.dll");
 
     std::cout << "Lets go!" << std::endl;
 
-    MainLoop();
-
-    delete Mem;
+    MainLoop(&mem);
 
     return 0;
 }
