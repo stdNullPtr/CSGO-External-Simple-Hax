@@ -15,6 +15,7 @@
 
 #### About offsets
 I will not be updating memory offsets often, you have to update them by yourself if something is not working.
+Easiest way to achieve that is with 'hazedumer'
 
 #### About the cheat
 The entire idea of the cheat is educational (believe it or not).
