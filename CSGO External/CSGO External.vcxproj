@@ -125,13 +125,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CSGOMemory.hpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Util_Vector.cpp" />
+    <ClCompile Include="VectorUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Memory.hpp" />
     <ClInclude Include="Offsets.hpp" />
-    <ClInclude Include="Util_Vector.hpp" />
+    <ClInclude Include="VectorUtils.hpp" />
     <ClInclude Include="WeaponType.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

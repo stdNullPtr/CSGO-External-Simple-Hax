@@ -49,7 +49,10 @@ public:
     Vector2D& operator=(const Vector2D& v);
 };
 
-inline float DotProduct2D(const Vector2D& a, const Vector2D& b) { return (a.x * b.x + a.y * b.y); }
+inline float DotProduct2D(const Vector2D& a, const Vector2D& b)
+{
+    return (a.x * b.x + a.y * b.y);
+}
 
 //=========================================================
 // 3D Vector
@@ -94,15 +97,24 @@ public:
     Vector& operator=(const Vector& v);
 };
 
-inline float DotProduct(const Vector& a, const Vector& b) { return (a.x * b.x + a.y * b.y + a.z * b.z); }
-inline Vector CrossProduct(const Vector& a, const Vector& b) { return Vector(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x); }
+inline float DotProduct(const Vector& a, const Vector& b)
+{
+    return (a.x * b.x + a.y * b.y + a.z * b.z);
+}
+inline Vector CrossProduct(const Vector& a, const Vector& b)
+{
+    return Vector(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+}
 inline void VectorTransform(float* in1, float in2[3][4], float* out)
 {
     out[0] = DotProduct(in1, in2[0]) + in2[0][3];
     out[1] = DotProduct(in1, in2[1]) + in2[1][3];
     out[2] = DotProduct(in1, in2[2]) + in2[2][3];
 }
-inline float GetMagnitude(const Vector& a) { return (float)sqrt(a.x * a.x + a.y * a.y + a.z * a.z); }
+inline float GetMagnitude(const Vector& a)
+{
+    return (float)sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+}
 inline float GetDistance(const Vector& to, const Vector& from)
 {
     float deltaX = to.x - from.x;
@@ -111,5 +123,3 @@ inline float GetDistance(const Vector& to, const Vector& from)
 
     return (float)sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
 }
-
-#define vec3_t Vector

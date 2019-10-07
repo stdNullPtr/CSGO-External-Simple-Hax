@@ -18,21 +18,24 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Util_Vector.cpp">
+    <ClCompile Include="VectorUtils.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CSGOMemory.hpp">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Memory.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Offsets.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Util_Vector.hpp">
+    <ClInclude Include="WeaponType.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WeaponType.hpp">
+    <ClInclude Include="VectorUtils.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
