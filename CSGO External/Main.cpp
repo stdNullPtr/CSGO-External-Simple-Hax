@@ -6,8 +6,7 @@
 #include "WeaponType.hpp"
 #include "VectorUtils.hpp"
 
-#define _USE_MATH_DEFINES
-#include <math.h>
+#define M_PI 3.14159265358979323846
 #define M_RADPI (180.0 / M_PI)
 #define M_DEGRAD (M_PI / 180.0)
 
@@ -75,15 +74,21 @@ struct Player
     uint32_t m_dwBase = 0;
     uint32_t m_glowIndex = 0;
 
-    void Update(int p, const CSGOMemory& mem)
+    bool Update(int p, const CSGOMemory& mem)
     {
         auto tempEnt = mem.Read<uint32_t>(mem.GetClientBase() + dwEntityList + ((p - 1) * 0x10));
 
-        if (tempEnt.has_value() && (m_dwBase = tempEnt.value()) != 0x0)
+        if (tempEnt.has_value() && tempEnt.value() != 0x0)
         {
+            m_dwBase = tempEnt.value();
+
             m_glowIndex = mem.Read<uint32_t>(m_dwBase + m_iGlowIndex).value();
             m_plrData = mem.Read<PlayerStruct>(m_dwBase).value();
+
+            return true;
         }
+
+        return false;
     }
 
     Vector BonePos(int boneId, const CSGOMemory& mem)
@@ -126,6 +131,25 @@ struct Player
 }g_localPlayer;
 std::vector<Player> g_playerList;
 #pragma endregion
+
+void UpdateLocalPlayer(const CSGOMemory& mem)
+{
+    Player localPlayer;
+    g_localPlayer = {};
+
+    auto localPLayerPtr = mem.Read<uint32_t>(mem.GetClientBase() + dwLocalPlayer);
+    if (localPLayerPtr.has_value() && (localPlayer.m_dwBase = localPLayerPtr.value()) != 0x0)
+    {
+        localPlayer.m_glowIndex = mem.Read<uint32_t>(localPlayer.m_dwBase + m_iGlowIndex).value();
+        localPlayer.m_plrData = mem.Read<PlayerStruct>(localPlayer.m_dwBase).value();
+
+        g_localPlayer = localPlayer;
+    }
+    else
+    {
+        std::cout << "WARN: Failed updating localPlayer!" << std::endl;
+    }
+}
 
 #pragma region AimBot
 
@@ -185,15 +209,17 @@ void ClampAngles(Vector* angles)
     angles->z = 0.0f;
 }
 
-float GetFOV(const Vector& Src, const Vector& Dst)
+float GetFOV(const Vector& src, const Vector& dest)
 {
-    Vector Delta = { Src.x - Dst.x, Src.y - Dst.y, Src.z - Dst.z };
-    NormalizeAngles(&Delta);
-    return sqrt(Delta.x * Delta.x + Delta.y * Delta.y + Delta.z * Delta.z);
+    Vector delta = { src.x - dest.x, src.y - dest.y, src.z - dest.z };
+    NormalizeAngles(&delta);
+    return sqrt(delta.x * delta.x + delta.y * delta.y + delta.z * delta.z);
 }
 
-void GetClosestEnt(const uint32_t& clientState, const Vector& currentAng, int &index, const CSGOMemory& mem)
+void GetClosestEnt(const uint32_t& clientState, const Vector& currentAng, int& index, const CSGOMemory& mem)
 {
+    UpdateLocalPlayer(mem);
+
     for (size_t i = 0; i < g_playerList.size(); i++)
     {
         g_playerList.at(i).Update(i + 1, mem);
@@ -267,7 +293,7 @@ void AimLoop(const CSGOMemory& mem)
 
 #pragma region WallHack
 
-void WallLoop(struct Player player, const CSGOMemory& mem)
+void WallLoop(const CSGOMemory& mem)
 {
     if (GetAsyncKeyState(VK_INSERT))
     {
@@ -279,48 +305,73 @@ void WallLoop(struct Player player, const CSGOMemory& mem)
 
     if (!g_whToggle) return;
 
-    int weaponType = player.GetWeapon(mem);
+    for (size_t i = 0; i < g_playerList.size(); i++)
+    {
+        if (g_playerList.at(i).m_plrData.m_iTeamNum == g_localPlayer.m_plrData.m_iTeamNum)
+            continue;
+        if (g_playerList.at(i).m_plrData.m_iHealth < 1)
+            continue;
 
-    if (weaponType == WEAPON_AWP)
-    {
-        player.Glow(0, 0, 1, mem); //blue
-    }
-    else if ((weaponType >= WEAPON_KNIFE && weaponType <= WEAPON_KNIFE_T) || weaponType >= WEAPON_KNIFE_BAYONET) //non-shooting weaps
-    {
-        player.Glow(0, 1, 0, mem); //green
-    }
-    else
-    {
-        player.Glow(1, 0, 0, mem); //red	
+        int weaponType = g_playerList.at(i).GetWeapon(mem);
+
+        if (weaponType == WEAPON_AWP)
+        {
+            g_playerList.at(i).Glow(0, 0, 1, mem); //blue
+        }
+        else if ((weaponType >= WEAPON_KNIFE && weaponType <= WEAPON_KNIFE_T) || weaponType >= WEAPON_KNIFE_BAYONET) //non-shooting weaps
+        {
+            g_playerList.at(i).Glow(0, 1, 0, mem); //green
+        }
+        else
+        {
+            g_playerList.at(i).Glow(1, 0, 0, mem); //red	
+        }
     }
 }
 
 #pragma endregion
 
+void UpdatePlayerList(const CSGOMemory& mem)
+{
+    g_playerList.clear();
+    g_playerList.resize(0);
+
+    UpdateLocalPlayer(mem);
+
+    ///TODO: find a way to loop through max players
+    // update players start from 1 since world is at 0
+    // the loop will stop when we stop reading players
+    for (size_t i = 1; i < 64; i++)
+    {
+        Player player;
+        // we reached an entity that is not a player
+        if (!player.Update(i, mem))
+            continue;
+
+        g_playerList.push_back(player);
+    }
+}
+
 void MainLoop(const CSGOMemory& mem)
 {
     std::cout << "Started main loop, press x to exit" << std::endl;
 
+    UpdatePlayerList(mem);
+
+    int cacheTimer = 1337;
     while (true)
     {
+        // exit the cheat when we press 'x'
         if (GetAsyncKeyState(0x58 /*x*/))
             break;
 
-        // first item in entitylist is the localplayer
-        g_localPlayer.Update(1, mem);
-
-        // start from 1 since we updated localplayer
-        for (size_t i = 1; i < g_playerList.size(); i++)
+        if (cacheTimer++ >= 200)
         {
-            g_playerList.at(i).Update(i + 1, mem);
-
-            if (g_playerList.at(i).m_plrData.m_iTeamNum == g_localPlayer.m_plrData.m_iTeamNum)
-                continue;
-            if (g_playerList.at(i).m_plrData.m_iHealth < 1)
-                continue;
-
-            WallLoop(g_playerList.at(i), mem);
+            UpdatePlayerList(mem);
+            cacheTimer = 0;
         }
+
+        WallLoop(mem);
         AimLoop(mem);
 
         Sleep(1);
@@ -332,9 +383,6 @@ int main()
     try
     {
         CSGOMemory mem(L"csgo.exe", memory::SafeMemory_AllAccess, CSGOMemory::ConstructProcessName());
-
-        // TODO: Get player count
-        g_playerList.resize(10);
 
         std::cout << "Initialized!" << std::endl;
 
