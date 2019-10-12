@@ -184,7 +184,7 @@ namespace memory
     public:
         // RPM/WPM 
         template<typename T>
-        std::optional<T> SafeReadMemory(const std::uintptr_t address_ptr) const noexcept(false)
+        std::optional<T> Read(const std::uintptr_t address_ptr) const noexcept(false)
         {
             T length;
 
@@ -196,7 +196,7 @@ namespace memory
             return std::optional<T>(std::move(length));
         }
         template<typename T>
-        bool SafeWriteMemory(const std::uintptr_t address_ptr, const T& length) const noexcept
+        bool Write(const std::uintptr_t address_ptr, const T& length) const noexcept
         {
             return !!WriteProcessMemory(this->m_processHandle.get(), reinterpret_cast<void*>(address_ptr), std::addressof(length), sizeof(length), 0);
         }

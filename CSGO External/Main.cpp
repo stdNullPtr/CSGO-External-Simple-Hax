@@ -1,5 +1,6 @@
 #include <thread>
 #include <iostream>
+#include <vector>
 #include "CSGOMemory.hpp"
 #include "Offsets.hpp"
 #include "WeaponType.hpp"
@@ -14,14 +15,7 @@ using namespace offsets::netvars;
 using namespace offsets::signatures;
 using namespace csgo_memory;
 
-bool WhToggled = false;
-
-#pragma region Misc
-
-const uint32_t SLEEP = 2;
-const int PLAYERCNT = 32;
-
-#pragma endregion
+bool g_whToggle = false;
 
 #pragma region AimBot
 
@@ -33,66 +27,124 @@ const float SMOOTH = 20;   //40
 
 #pragma region Structs
 
-struct LocalPlayer
+struct BoneStruct
 {
-    uint32_t Local;
-    int Team;
-    int Health;
-    int InCross;
-    void Read(const CSGOMemory& mem)
-    {
-        Local = *mem.SafeReadMemory<uint32_t>(mem.GetClientBase() + dwLocalPlayer);
+    char _pad1[0x0C];
+    float x;
+    char _pad2[0x0C];
+    float y;
+    char _pad3[0x0C];
+    float z;
+};
 
-        if (Local != NULL)
-        {
-            Team = *mem.SafeReadMemory<int>(Local + m_iTeamNum);
-            Health = *mem.SafeReadMemory<int>(Local + m_iHealth);
-            InCross = *mem.SafeReadMemory<int>(Local + m_iCrosshairId);
-        }
-    }
-    Vector GetLocalEye(const CSGOMemory& mem)
-    {
-        Vector origin = *mem.SafeReadMemory<Vector>(Local + m_vecOrigin);
-        Vector viewOffset = *mem.SafeReadMemory<Vector>(Local + m_vecViewOffset);
-        return origin + viewOffset;
-    }
-}LocalPlayer;
+struct GlowStruct
+{
+    float R;
+    float G;
+    float B;
+    float m_flGlowAlpha;
+    char m_unk[4];
+    float m_flUnk;
+    float m_flBloomAmount;
+    float m_flUnk1;
+    bool m_bRenderWhenOccluded;
+    bool m_bRenderWhenUnoccluded;
+    bool m_bFullBloomRender;
+    char m_unk1;
+    int m_nFullBloomStencilTestValue;
+    int m_nGlowStyle;
+    int m_nSplitScreenSlot;
+    int m_nNextFreeSlot;
+}g_glowStr;
+
+struct PlayerStruct
+{
+    char pad_0000[244]; //0x0000
+    int32_t m_iTeamNum; //0x00F4
+    char pad_00F8[8]; //0x00F8
+    int32_t m_iHealth; //0x0100
+    char pad_0104[4]; //0x0104
+    Vector m_vecViewOffset; //0x0108
+    char pad_0114[36]; //0x0114
+    Vector m_vecOrigin; //0x0138
+};
 
 struct Player
 {
-    uint32_t Entity;
-    int Team;
-    int Health;
-    uint32_t GlowIndex;
-    void Read(int p, const CSGOMemory& mem)
+    PlayerStruct m_plrData;
+    uint32_t m_dwBase = 0;
+    uint32_t m_glowIndex = 0;
+
+    void Update(int p, const CSGOMemory& mem)
     {
-        Entity = *mem.SafeReadMemory<uint32_t>(mem.GetClientBase() + dwEntityList + ((p - 1) * 0x10));
-        //Checking if it is a valid entity
-        if (Entity != NULL)
+        auto tempEnt = mem.Read<uint32_t>(mem.GetClientBase() + dwEntityList + ((p - 1) * 0x10));
+
+        if (tempEnt.has_value() && (m_dwBase = tempEnt.value()) != 0x0)
         {
-            GlowIndex = *mem.SafeReadMemory<uint32_t>(Entity + m_iGlowIndex);
-            Team = *mem.SafeReadMemory<int>(Entity + m_iTeamNum);
-            Health = *mem.SafeReadMemory<int>(Entity + m_iHealth);
+            m_glowIndex = mem.Read<uint32_t>(m_dwBase + m_iGlowIndex).value();
+            m_plrData = mem.Read<PlayerStruct>(m_dwBase).value();
         }
     }
-}PlayerList[PLAYERCNT];
 
+    Vector BonePos(int boneId, const CSGOMemory& mem)
+    {
+        uint32_t boneBase = *mem.Read<uint32_t>(m_dwBase + m_dwBoneMatrix);
+        uint32_t base = boneBase + (0x30 * boneId);
+        BoneStruct boneVector = *mem.Read<BoneStruct>(base);
+
+        Vector vBone;
+        vBone.x = boneVector.x;
+        vBone.y = boneVector.y;
+        vBone.z = boneVector.z;
+
+        return vBone;
+    }
+
+    int GetWeapon(const CSGOMemory& mem)
+    {
+        uint32_t weapon = *mem.Read<uint32_t>(m_dwBase + m_hActiveWeapon);
+        uint32_t duck = weapon & 0xFFF;
+        uint32_t horse = *mem.Read<uint32_t>(mem.GetClientBase() + dwEntityList + (duck - 1) * 0x10);
+        return *mem.Read<int>(horse + m_iItemDefinitionIndex);
+    }
+
+    void Glow(float R, float G, float B, const CSGOMemory& mem)
+    {
+        uint32_t glowStructBase = mem.GetGlowBase() + (m_glowIndex * 0x38) + 0x4;
+
+        g_glowStr = *mem.Read<GlowStruct>(glowStructBase);
+
+        g_glowStr.R = R;
+        g_glowStr.G = G;
+        g_glowStr.B = B;
+        g_glowStr.m_flGlowAlpha = 0.7f;
+        g_glowStr.m_bRenderWhenOccluded = true;
+        g_glowStr.m_bRenderWhenUnoccluded = false;
+
+        mem.Write<GlowStruct>(glowStructBase, g_glowStr);
+    }
+}g_localPlayer;
+std::vector<Player> g_playerList;
 #pragma endregion
 
 #pragma region AimBot
 
+Vector GetLocalEye()
+{
+    return g_localPlayer.m_plrData.m_vecOrigin + g_localPlayer.m_plrData.m_vecViewOffset;
+}
+
 Vector BonePos(int base, int boneId, const CSGOMemory& mem)
 {
-    uint32_t boneBase;
-    boneBase = *mem.SafeReadMemory<uint32_t>(base + m_dwBoneMatrix);
+    uint32_t boneBase = *mem.Read<uint32_t>(base + m_dwBoneMatrix);
+
+    uint32_t Base = boneBase + (0x30 * boneId);
+    BoneStruct bv = *mem.Read<BoneStruct>(Base);
 
     Vector vBone;
-    uint32_t Base = boneBase + (0x30 * boneId);
-
-    /// TODO: Read all at once
-    vBone.x = *mem.SafeReadMemory<float>(Base + 0x0C);
-    vBone.y = *mem.SafeReadMemory<float>(Base + 0x1C);
-    vBone.z = *mem.SafeReadMemory<float>(Base + 0x2C);
+    vBone.x = bv.x;
+    vBone.y = bv.y;
+    vBone.z = bv.z;
 
     return vBone;
 }
@@ -140,26 +192,20 @@ float GetFOV(const Vector& Src, const Vector& Dst)
     return sqrt(Delta.x * Delta.x + Delta.y * Delta.y + Delta.z * Delta.z);
 }
 
-int GetClosestEnt(uint32_t clientState, const CSGOMemory& mem)
+void GetClosestEnt(const uint32_t& clientState, const Vector& currentAng, int &index, const CSGOMemory& mem)
 {
-    int index = -1;
-
-    for (int i = 1; i <= PLAYERCNT; i++)
+    for (size_t i = 0; i < g_playerList.size(); i++)
     {
-        PlayerList[i].Read(i, mem);
+        g_playerList.at(i).Update(i + 1, mem);
 
-        if (PlayerList[i].Entity == NULL)
+        if (g_playerList.at(i).m_plrData.m_iTeamNum == g_localPlayer.m_plrData.m_iTeamNum)
             continue;
-        if (PlayerList[i].Team == LocalPlayer.Team)
-            continue;
-        if (PlayerList[i].Health < 1)
+        if (g_playerList.at(i).m_plrData.m_iHealth < 1)
             continue;
 
-        Vector currentAng = *mem.SafeReadMemory<Vector>(clientState + dwClientState_ViewAngles);
+        Vector enemyHeadPos = g_playerList.at(i).BonePos(8, mem);
 
-        Vector enemyHeadPos = BonePos(PlayerList[i].Entity, 8, mem);
-
-        Vector localEye = LocalPlayer.GetLocalEye(mem);
+        Vector localEye = GetLocalEye();
 
         Vector delta = localEye - enemyHeadPos;
 
@@ -172,28 +218,23 @@ int GetClosestEnt(uint32_t clientState, const CSGOMemory& mem)
             index = i;
         }
     }
-    return index;
 }
 
 void AimLoop(const CSGOMemory& mem)
 {
     if (!GetAsyncKeyState(VK_MBUTTON)) return;
 
+    uint32_t clientState = *mem.Read<uint32_t>(mem.GetEngineBase() + dwClientState);
+    Vector currentAng = *mem.Read<Vector>(clientState + dwClientState_ViewAngles);
+
     int index = -1;
-
-    uint32_t clientState = *mem.SafeReadMemory<uint32_t>(mem.GetEngineBase() + dwClientState);
-
-    Vector currentAng = *mem.SafeReadMemory<Vector>(clientState + dwClientState_ViewAngles);
-
-    index = GetClosestEnt(clientState, mem);
+    GetClosestEnt(clientState, currentAng, index, mem);
 
     if (index == -1)
         return;
 
-    Vector enemyHeadPos = BonePos(PlayerList[index].Entity, BONEID, mem);
-
-    Vector delta = LocalPlayer.GetLocalEye(mem) - enemyHeadPos;
-
+    Vector enemyHeadPos = g_playerList.at(index).BonePos(BONEID, mem);
+    Vector delta = GetLocalEye() - enemyHeadPos;
     Vector finalAng = CalculateAngle(delta);
 
     float deltaX = finalAng.x - currentAng.x;
@@ -209,14 +250,12 @@ void AimLoop(const CSGOMemory& mem)
     float smoothY = deltaY / SMOOTH;
 
     int loop = 0;
-
     while (loop < 10)
     {
         NormalizeAngles(&currentAng);
         ClampAngles(&currentAng);
-        mem.SafeWriteMemory<Vector>(clientState + dwClientState_ViewAngles, currentAng);
+        mem.Write<Vector>(clientState + dwClientState_ViewAngles, currentAng);
 
-        //Sleep(1);
         loop++;
 
         currentAng.x += smoothX;
@@ -228,76 +267,31 @@ void AimLoop(const CSGOMemory& mem)
 
 #pragma region WallHack
 
-struct GlowStruct
-{
-    float R;
-    float G;
-    float B;
-    float m_flGlowAlpha;
-    char m_unk[4];
-    float m_flUnk;
-    float m_flBloomAmount;
-    float m_flUnk1;
-    bool m_bRenderWhenOccluded;
-    bool m_bRenderWhenUnoccluded;
-    bool m_bFullBloomRender;
-    char m_unk1;
-    int m_nFullBloomStencilTestValue;
-    int m_nGlowStyle;
-    int m_nSplitScreenSlot;
-    int m_nNextFreeSlot;
-}glowStr;
-
-void Glow(uint32_t GlowIndex, float R, float G, float B, const CSGOMemory& mem)
-{
-    uint32_t GlowBase = *mem.SafeReadMemory<uint32_t>(mem.GetClientBase() + dwGlowObjectManager);
-    uint32_t glowstrBase = GlowBase + (GlowIndex * 0x38) + 0x4;
-
-    glowStr = *mem.SafeReadMemory<GlowStruct>(glowstrBase);
-
-    glowStr.R = R;
-    glowStr.G = G;
-    glowStr.B = B;
-    glowStr.m_flGlowAlpha = 0.7f;
-    glowStr.m_bRenderWhenOccluded = true;
-    glowStr.m_bRenderWhenUnoccluded = false;
-
-    mem.SafeWriteMemory<GlowStruct>(glowstrBase, glowStr);
-}
-
-int GetWeapon(uint32_t player, const CSGOMemory& mem)
-{
-    uint32_t Weapon = *mem.SafeReadMemory<uint32_t>(player + m_hActiveWeapon);
-    uint32_t duck = Weapon & 0xFFF;
-    uint32_t horse = *mem.SafeReadMemory<uint32_t>(mem.GetClientBase() + dwEntityList + (duck - 1) * 0x10);
-    return *mem.SafeReadMemory<int>(horse + m_iItemDefinitionIndex);
-}
-
 void WallLoop(struct Player player, const CSGOMemory& mem)
 {
     if (GetAsyncKeyState(VK_INSERT))
     {
-        WhToggled = !WhToggled;
-        if (WhToggled) std::cout << "Walls On" << std::endl;
+        g_whToggle = !g_whToggle;
+        if (g_whToggle) std::cout << "Walls On" << std::endl;
         else std::cout << "Walls Off" << std::endl;
         Sleep(500);
     }
 
-    if (!WhToggled) return;
+    if (!g_whToggle) return;
 
-    int cock = GetWeapon(player.Entity, mem);
+    int weaponType = player.GetWeapon(mem);
 
-    if (cock == WEAPON_AWP)
+    if (weaponType == WEAPON_AWP)
     {
-        Glow(player.GlowIndex, 0, 0, 1, mem); //blue
+        player.Glow(0, 0, 1, mem); //blue
     }
-    else if ((cock >= WEAPON_KNIFE && cock <= WEAPON_KNIFE_T) || cock >= WEAPON_KNIFE_BAYONET) //non-shooting weaps
+    else if ((weaponType >= WEAPON_KNIFE && weaponType <= WEAPON_KNIFE_T) || weaponType >= WEAPON_KNIFE_BAYONET) //non-shooting weaps
     {
-        Glow(player.GlowIndex, 0, 1, 0, mem); //green
+        player.Glow(0, 1, 0, mem); //green
     }
     else
     {
-        Glow(player.GlowIndex, 1, 0, 0, mem); //red	
+        player.Glow(1, 0, 0, mem); //red	
     }
 }
 
@@ -312,24 +306,24 @@ void MainLoop(const CSGOMemory& mem)
         if (GetAsyncKeyState(0x58 /*x*/))
             break;
 
-        LocalPlayer.Read(mem);
+        // first item in entitylist is the localplayer
+        g_localPlayer.Update(1, mem);
 
-        for (int i = 1; i <= PLAYERCNT; i++)
+        // start from 1 since we updated localplayer
+        for (size_t i = 1; i < g_playerList.size(); i++)
         {
-            PlayerList[i].Read(i, mem);
+            g_playerList.at(i).Update(i + 1, mem);
 
-            if (PlayerList[i].Entity == NULL)
+            if (g_playerList.at(i).m_plrData.m_iTeamNum == g_localPlayer.m_plrData.m_iTeamNum)
                 continue;
-            if (PlayerList[i].Team == LocalPlayer.Team)
-                continue;
-            if (PlayerList[i].Health < 1)
+            if (g_playerList.at(i).m_plrData.m_iHealth < 1)
                 continue;
 
-            WallLoop(PlayerList[i], mem);
+            WallLoop(g_playerList.at(i), mem);
         }
         AimLoop(mem);
 
-        Sleep(SLEEP);
+        Sleep(1);
     }
 }
 
@@ -338,6 +332,9 @@ int main()
     try
     {
         CSGOMemory mem(L"csgo.exe", memory::SafeMemory_AllAccess, CSGOMemory::ConstructProcessName());
+
+        // TODO: Get player count
+        g_playerList.resize(10);
 
         std::cout << "Initialized!" << std::endl;
 

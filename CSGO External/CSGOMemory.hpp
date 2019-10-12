@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Memory.hpp"
+#include "Offsets.hpp"
 
 namespace csgo_memory
 {
@@ -20,6 +21,12 @@ namespace csgo_memory
 
             this->m_engineBase = temp_engineBase.value();
             this->m_clientBase = temp_clientBase.value();
+
+            const std::optional<uint32_t> glowBase = Read<uint32_t>(this->m_clientBase + offsets::signatures::dwGlowObjectManager);
+            if (!glowBase.has_value())
+                throw std::exception("'Glow base' not found!");
+
+            this->m_glowBase = glowBase.value();
         }
 
     public:
@@ -33,8 +40,14 @@ namespace csgo_memory
             return m_clientBase;
         }
 
+        uint32_t GetGlowBase() const
+        {
+            return m_glowBase;
+        }
+
     private:
         uint32_t m_engineBase = 0;
         uint32_t m_clientBase = 0;
+        uint32_t m_glowBase = 0;
     };
 }
