@@ -1,42 +1,23 @@
 #include "VectorUtils.hpp"
 
-Vector2D::Vector2D(Vector2D&& v)
-{
-    x = v.x;
-    y = v.y;
-
-    v.x = 0.0f;
-    v.y = 0.0f;
-}
-
-float* Vector2D::base()
-{
-    return (float*)this;
-}
-
-float const* Vector2D::base() const
-{
-    return (float const*)this;
-}
-
-float Vector2D::operator[](int i) const
+float Vector2D::operator[](const int i) const
 {
     return ((float*)this)[i];
 }
 
-float& Vector2D::operator[](int i)
+float& Vector2D::operator[](const int i)
 {
-    return ((float*)this)[i];
+    return reinterpret_cast<float*>(this)[i];
 }
 
-void Vector2D::clear()
+void Vector2D::Clear()
 {
     this->x = this->y = 0.0f;
 }
 
-float Vector2D::lengthSqr()
+float Vector2D::LengthSqr() const
 {
-    return (float)(pow(this->x, 2) + pow(this->y, 2));
+    return static_cast<float>(pow(this->x, 2) + pow(this->y, 2));
 }
 
 Vector2D Vector2D::operator+(const Vector2D& v) const
@@ -54,7 +35,7 @@ Vector2D Vector2D::operator*(const Vector2D& v) const
     return Vector2D(this->x * v.x, this->y * v.y);
 }
 
-Vector2D Vector2D::operator*(float f) const
+Vector2D Vector2D::operator*(const float f) const
 {
     return Vector2D(this->x * f, this->y * f);
 }
@@ -64,44 +45,12 @@ Vector2D Vector2D::operator/(const Vector2D& v) const
     return Vector2D(this->x / v.x, this->y / v.y);
 }
 
-Vector2D Vector2D::operator/(float f) const
+Vector2D Vector2D::operator/(const float f) const
 {
     return Vector2D(this->x / f, this->y / f);
 }
 
-Vector2D& Vector2D::operator+=(const Vector2D& v)
-{
-    this->x += v.x;
-    this->y += v.y;
-
-    return *this;
-}
-
-Vector2D& Vector2D::operator-=(const Vector2D& v)
-{
-    this->x -= v.x;
-    this->y -= v.y;
-
-    return *this;
-}
-
-Vector2D& Vector2D::operator*=(const Vector2D& v)
-{
-    this->x *= v.x;
-    this->y *= v.y;
-
-    return *this;
-}
-
-Vector2D& Vector2D::operator/=(const Vector2D& v)
-{
-    this->x /= v.x;
-    this->y /= v.y;
-
-    return *this;
-}
-
-Vector2D& Vector2D::operator*=(float f)
+Vector2D& Vector2D::operator*=(const float f)
 {
     this->x *= f;
     this->y *= f;
@@ -109,7 +58,7 @@ Vector2D& Vector2D::operator*=(float f)
     return *this;
 }
 
-Vector2D& Vector2D::operator/=(float f)
+Vector2D& Vector2D::operator/=(const float f)
 {
     this->x /= f;
     this->y /= f;
@@ -117,63 +66,14 @@ Vector2D& Vector2D::operator/=(float f)
     return *this;
 }
 
-Vector2D& Vector2D::operator=(Vector2D&& v)
-{
-    if (this != &v)
-    {
-        x = 0.0f;
-        y = 0.0f;
-
-        x = v.x;
-        y = v.y;
-
-        v.x = 0.0f;
-        v.y = 0.0f;
-    }
-
-    return *this;
-}
-
-Vector2D& Vector2D::operator=(const Vector2D& v)
-{
-    if (this != &v)
-    {
-        x = v.x;
-        y = v.y;
-    }
-
-    return *this;
-}
-
-Vector::Vector(Vector&& v)
-{
-    x = v.x;
-    y = v.y;
-    z = v.z;
-
-    v.x = 0.0f;
-    v.y = 0.0f;
-    v.z = 0.0f;
-}
-
-float* Vector::base()
-{
-    return (float*)this;
-}
-
-float const* Vector::base() const
-{
-    return (float const*)this;
-}
-
-float Vector::operator[](int i) const
+float Vector::operator[](const int i) const
 {
     return ((float*)this)[i];
 }
 
-float& Vector::operator[](int i)
+float& Vector::operator[](const int i)
 {
-    return ((float*)this)[i];
+    return reinterpret_cast<float*>(this)[i];
 }
 
 void Vector::clear()
@@ -181,9 +81,9 @@ void Vector::clear()
     this->x = this->y = this->z = 0.0f;
 }
 
-float Vector::lengthSqr()
+float Vector::LengthSqr() const
 {
-    return (float)(pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2));
+    return static_cast<float>(pow(this->x, 2) + pow(this->y, 2) + pow(this->z, 2));
 }
 
 Vector Vector::operator+(const Vector& v) const
@@ -201,7 +101,7 @@ Vector Vector::operator*(const Vector& v) const
     return Vector(this->x * v.x, this->y * v.y, this->z * v.z);
 }
 
-Vector Vector::operator*(float f) const
+Vector Vector::operator*(const float f) const
 {
     return Vector(this->x * f, this->y * f, this->z * f);
 }
@@ -211,48 +111,12 @@ Vector Vector::operator/(const Vector& v) const
     return Vector(this->x / v.x, this->y / v.y, this->z / v.z);
 }
 
-Vector Vector::operator/(float f) const
+Vector Vector::operator/(const float f) const
 {
     return Vector(this->x / f, this->y / f, this->z / f);
 }
 
-Vector& Vector::operator+=(const Vector& v)
-{
-    this->x += v.x;
-    this->y += v.y;
-    this->z += v.z;
-
-    return *this;
-}
-
-Vector& Vector::operator-=(const Vector& v)
-{
-    this->x -= v.x;
-    this->y -= v.y;
-    this->z -= v.z;
-
-    return *this;
-}
-
-Vector& Vector::operator*=(const Vector& v)
-{
-    this->x *= v.x;
-    this->y *= v.y;
-    this->z *= v.z;
-
-    return *this;
-}
-
-Vector& Vector::operator/=(const Vector& v)
-{
-    this->x /= v.x;
-    this->y /= v.y;
-    this->z /= v.z;
-
-    return *this;
-}
-
-Vector& Vector::operator*=(float f)
+Vector& Vector::operator*=(const float f)
 {
     this->x *= f;
     this->y *= f;
@@ -261,43 +125,11 @@ Vector& Vector::operator*=(float f)
     return *this;
 }
 
-Vector& Vector::operator/=(float f)
+Vector& Vector::operator/=(const float f)
 {
     this->x /= f;
     this->y /= f;
     this->z /= f;
-
-    return *this;
-}
-
-Vector& Vector::operator=(Vector&& v)
-{
-    if (this != &v)
-    {
-        x = 0.0f;
-        y = 0.0f;
-        z = 0.0f;
-
-        x = v.x;
-        y = v.y;
-        z = v.z;
-
-        v.x = 0.0f;
-        v.y = 0.0f;
-        v.z = 0.0f;
-    }
-
-    return *this;
-}
-
-Vector& Vector::operator=(const Vector& v)
-{
-    if (this != &v)
-    {
-        x = v.x;
-        y = v.y;
-        z = v.z;
-    }
 
     return *this;
 }

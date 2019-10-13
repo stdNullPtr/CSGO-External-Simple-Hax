@@ -5,10 +5,8 @@
 #include <memory> 
 #include <cstdint>
 #include <optional>
-#include <string_view>
 #include <type_traits>
 #include <system_error>
-#include <iostream>
 
 // Author: https://github.com/laxodev/RAII-WINAPI-Memory-Manager
 // This is a user-defined "deleter" which gets passed to our smart-pointer. 
@@ -28,7 +26,7 @@ namespace memory
 
             // operator that gets called when our object is going to be destroyed.
 
-            void operator()(HANDLE handle) const
+            void operator()(const HANDLE handle) const
             {
                 // we check for both INVALID_HANDLE_VALUE and NULL as not all winapi functions will return INVALID_HANDLE_VALUE.
                 if (handle != INVALID_HANDLE_VALUE && handle != nullptr)
@@ -37,7 +35,7 @@ namespace memory
                 }
             }
         };
-        // WINAPI HANDLE wrapped around a unique_ptr, inside "detail" as this is mean't for internal use.
+        // WINAPI HANDLE wrapped around a unique_ptr, inside "detail" as this is meant for internal use.
         using unique_handle = std::unique_ptr<HANDLE, HandleDisposer>;
     }
     enum SafeMemory_Access
@@ -56,7 +54,7 @@ namespace memory
         struct ConstructWindowName{};
         struct ConstructProcessID{};
 
-        explicit SafeMemory(std::wstring_view process_name, const SafeMemory_Access processFlags, ConstructProcessName) noexcept(false)
+        explicit SafeMemory(const std::wstring_view process_name, const SafeMemory_Access processFlags, ConstructProcessName) noexcept(false)
         {
             // Acquire the handle in the constructor.
             const std::optional<std::uint32_t> process_id = this->AcquireProcessID(process_name);
@@ -85,16 +83,9 @@ namespace memory
 
             this->m_processID = process_id;
         }
-        // Disables the copy ctor and copy assignment operator to ensure no copy of the object is created.
-        // If a copy is made and the original one goes out of scope will be left with a invalid handle.
-        // This shouldn't be copyable anyway since we are using a handle wrapped around a unique_ptr.
-        // If it is intended for a function to take this object it should be passed by reference.
-        SafeMemory(const SafeMemory&) = delete;
-        SafeMemory& operator = (const SafeMemory&) = delete;
         ~SafeMemory()
         {
             SetHandleInformation(this->m_processHandle.get(), HANDLE_FLAG_PROTECT_FROM_CLOSE, NULL);
-            std::cout << "SafeMemory successfully destroyed" << std::endl;
         }
     private:
         // Main handle that lives throughout until the object-lifetime is over.
@@ -102,33 +93,33 @@ namespace memory
         std::uint32_t m_processID = 0;
     private:
         // Acquires the process id by process-name.
-        inline std::optional<std::uint32_t> AcquireProcessID(std::wstring_view process_name) const noexcept
+        static std::optional<std::uint32_t> AcquireProcessID(const std::wstring_view process_name) noexcept
         {
-            PROCESSENTRY32W processentry;
+            PROCESSENTRY32W processEntry;
             const memory::detail::unique_handle snapshot_handle(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
 
             if (snapshot_handle.get() == INVALID_HANDLE_VALUE)
                 return std::nullopt;
 
-            processentry.dwSize = sizeof(PROCESSENTRY32W);
+            processEntry.dwSize = sizeof(PROCESSENTRY32W);
 
-            if (Process32FirstW(snapshot_handle.get(), &processentry))
+            if (Process32FirstW(snapshot_handle.get(), &processEntry))
             {
-                while (Process32NextW(snapshot_handle.get(), &processentry))
+                while (Process32NextW(snapshot_handle.get(), &processEntry))
                 {
-                    if (process_name == processentry.szExeFile)
-                        return std::optional<std::uint32_t>(processentry.th32ProcessID);
+                    if (process_name == processEntry.szExeFile)
+                        return std::optional<std::uint32_t>(processEntry.th32ProcessID);
                 }
             }
             return std::nullopt;
         }
         // Acquires the process id by the window-name.
         // We cannot use "c_str" to return a null-terminated character array like we would with a regular std::string.
-        inline std::optional<std::uint32_t> AcquireProcessIDByWindowName(const std::wstring& window_name) const noexcept
+        static std::optional<std::uint32_t> AcquireProcessIDByWindowName(const std::wstring& window_name) noexcept
         {
             DWORD temp_process_id = 0;
 
-            const HWND window_handle(FindWindowW(0, window_name.c_str()));
+            const HWND window_handle(FindWindowW(nullptr, window_name.c_str()));
 
             if (window_handle == nullptr)
                 return std::nullopt;
@@ -141,12 +132,12 @@ namespace memory
         // Opens the specified handle.
         bool AcquireProcessHandle(const std::uint32_t process_id, const DWORD processFlags) noexcept
         {
-            std::optional<memory::detail::unique_handle> processhandle = CreateProcessHandle(process_id, processFlags);
+            std::optional<memory::detail::unique_handle> processHandle = CreateProcessHandle(process_id, processFlags);
 
-            if (!processhandle.has_value())
+            if (!processHandle.has_value())
                 return false;
 
-            this->m_processHandle = std::move(processhandle.value());
+            this->m_processHandle = std::move(processHandle.value());
 
             return true;
         }
@@ -154,31 +145,31 @@ namespace memory
         std::optional<memory::detail::unique_handle> CreateProcessHandle(const std::uint32_t process_id, const DWORD processFlags) const noexcept
         {
             // Passes the ownership to the main handle.
-            memory::detail::unique_handle processhandle(OpenProcess(processFlags, false, process_id));
+            memory::detail::unique_handle processHandle(OpenProcess(processFlags, false, process_id));
 
-            if (processhandle.get() == nullptr)
+            if (processHandle.get() == nullptr)
                 return std::nullopt;
 
-            return std::optional<memory::detail::unique_handle>(std::move(processhandle));
+            return std::optional<memory::detail::unique_handle>(std::move(processHandle));
         }
     public:
-        inline std::optional<std::uintptr_t> GetModuleBaseAddress(std::wstring_view module_name) const noexcept
+        std::optional<std::uintptr_t> GetModuleBaseAddress(const std::wstring_view module_name) const noexcept
         {
-            MODULEENTRY32W moduleentry;
+            MODULEENTRY32W moduleEntry;
 
             const memory::detail::unique_handle snapshot_handle(CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, this->m_processID));
 
             if (snapshot_handle.get() == INVALID_HANDLE_VALUE)
                 return std::nullopt;
 
-            moduleentry.dwSize = sizeof(MODULEENTRY32W);
+            moduleEntry.dwSize = sizeof(MODULEENTRY32W);
 
-            if (Module32FirstW(snapshot_handle.get(), &moduleentry))
+            if (Module32FirstW(snapshot_handle.get(), &moduleEntry))
             {
-                while (Module32NextW(snapshot_handle.get(), &moduleentry))
+                while (Module32NextW(snapshot_handle.get(), &moduleEntry))
                 {
-                    if (module_name == moduleentry.szModule)
-                        return std::optional<std::uintptr_t>(reinterpret_cast<std::uintptr_t>(moduleentry.modBaseAddr));
+                    if (module_name == moduleEntry.szModule)
+                        return std::optional<std::uintptr_t>(reinterpret_cast<std::uintptr_t>(moduleEntry.modBaseAddr));
                 }
             }
             return std::nullopt;
@@ -190,7 +181,7 @@ namespace memory
         {
             T length;
 
-            if ((!ReadProcessMemory(this->m_processHandle.get(), reinterpret_cast<void*>(address_ptr), std::addressof(length), sizeof(length), 0)))
+            if ((!ReadProcessMemory(this->m_processHandle.get(), reinterpret_cast<void*>(address_ptr), std::addressof(length), sizeof(length), nullptr)))
             {
                 return std::nullopt;
             }
@@ -200,7 +191,7 @@ namespace memory
         template<typename T>
         bool Write(const std::uintptr_t address_ptr, const T& length) const noexcept
         {
-            return !!WriteProcessMemory(this->m_processHandle.get(), reinterpret_cast<void*>(address_ptr), std::addressof(length), sizeof(length), 0);
+            return !!WriteProcessMemory(this->m_processHandle.get(), reinterpret_cast<void*>(address_ptr), std::addressof(length), sizeof(length), nullptr);
         }
     };
 }

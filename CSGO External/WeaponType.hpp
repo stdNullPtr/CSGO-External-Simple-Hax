@@ -1,3 +1,5 @@
+#pragma once
+
 enum eWeaponID
 {
     WEAPON_DEAGLE = 1,

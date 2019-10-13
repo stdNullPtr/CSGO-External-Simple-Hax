@@ -1,7 +1,6 @@
 #pragma once
 
-#include <memory>
-#include <math.h>
+#include <cmath>
 
 using vec_t = float;
 
@@ -15,23 +14,17 @@ public:
 
     vec_t x, y;
 
-    Vector2D() {}
-    Vector2D(vec_t x, vec_t y) : x{ x }, y{ y } {}
+    Vector2D() = default;
+    Vector2D(const vec_t x, const vec_t y) : x{ x }, y{ y } {}
     Vector2D(float* xy) : x{ xy[0] }, y{ xy[1] } {}
-    Vector2D(const Vector2D& v) : x{ v.x }, y{ v.y } {}
-    Vector2D(Vector2D&& v);
-
     ~Vector2D() = default;
-
-    float* base();
-    float const* base() const;
 
     float operator[](int i) const;
     float& operator[](int i);
 
-    void clear();
+    void Clear();
 
-    float lengthSqr();
+    float LengthSqr() const;
 
     Vector2D operator+(const Vector2D& v) const;
     Vector2D operator-(const Vector2D& v) const;
@@ -39,14 +32,8 @@ public:
     Vector2D operator*(float f) const;
     Vector2D operator/(const Vector2D& v) const;
     Vector2D operator/(float f) const;
-    Vector2D& operator+=(const Vector2D& v);
-    Vector2D& operator-=(const Vector2D& v);
-    Vector2D& operator*=(const Vector2D& v);
-    Vector2D& operator/=(const Vector2D& v);
     Vector2D& operator*=(float f);
     Vector2D& operator/=(float f);
-    Vector2D& operator=(Vector2D&& v);
-    Vector2D& operator=(const Vector2D& v);
 };
 
 inline float DotProduct2D(const Vector2D& a, const Vector2D& b)
@@ -63,23 +50,17 @@ public:
 
     vec_t x, y, z;
 
-    Vector() {}
-    Vector(vec_t x, vec_t y, vec_t z) : x{ x }, y{ y }, z{ z } {}
+    Vector() = default;
+    Vector(const vec_t x, const vec_t y, const vec_t z) : x{ x }, y{ y }, z{ z } {}
     Vector(float* xyz) : x{ xyz[0] }, y{ xyz[1] }, z{ xyz[2] } {}
-    Vector(const Vector& v) : x{ v.x }, y{ v.y }, z{ v.z } {}
-    Vector(Vector&& v);
-
     ~Vector() = default;
-
-    float* base();
-    float const* base() const;
 
     float operator[](int i) const;
     float& operator[](int i);
 
     void clear();
 
-    float lengthSqr();
+    float LengthSqr() const;
 
     Vector operator+(const Vector& v) const;
     Vector operator-(const Vector& v) const;
@@ -87,14 +68,8 @@ public:
     Vector operator*(float f) const;
     Vector operator/(const Vector& v) const;
     Vector operator/(float f) const;
-    Vector& operator+=(const Vector& v);
-    Vector& operator-=(const Vector& v);
-    Vector& operator*=(const Vector& v);
-    Vector& operator/=(const Vector& v);
     Vector& operator*=(float f);
     Vector& operator/=(float f);
-    Vector& operator=(Vector&& v);
-    Vector& operator=(const Vector& v);
 };
 
 inline float DotProduct(const Vector& a, const Vector& b)
@@ -113,13 +88,13 @@ inline void VectorTransform(float* in1, float in2[3][4], float* out)
 }
 inline float GetMagnitude(const Vector& a)
 {
-    return (float)sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+    return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 }
 inline float GetDistance(const Vector& to, const Vector& from)
 {
-    float deltaX = to.x - from.x;
-    float deltaY = to.y - from.y;
-    float deltaZ = to.z - from.z;
+    const float deltaX = to.x - from.x;
+    const float deltaY = to.y - from.y;
+    const float deltaZ = to.z - from.z;
 
-    return (float)sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+    return sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
 }
