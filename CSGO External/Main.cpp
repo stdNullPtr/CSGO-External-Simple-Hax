@@ -336,14 +336,16 @@ void UpdatePlayerList(const CSGOMemory& mem)
     g_playerList.clear();
     g_playerList.resize(0);
 
+    // localplayer is always first in the list vs bots, but in real games we have to seperately update
     UpdateLocalPlayer(mem);
 
     ///TODO: find a way to loop through max players
     // update players start from 1 since world is at 0
     // the loop will stop when we stop reading players
-    for (size_t i = 1; i < 64; i++)
+    for (size_t i = 1; i < 32; i++)
     {
         Player player;
+        // TODO: sometimes we fail reading an entity even though it should be a player???
         // we reached an entity that is not a player
         if (!player.Update(i, mem))
             continue;
