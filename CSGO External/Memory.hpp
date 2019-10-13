@@ -9,8 +9,10 @@
 #include <type_traits>
 #include <system_error>
 #include <iostream>
+
+// Author: https://github.com/laxodev/RAII-WINAPI-Memory-Manager
 // This is a user-defined "deleter" which gets passed to our smart-pointer. 
-//It is required because smart-pointers call "delete" by default and we need "CloseHandle". It is used on WINAPI HANDLES.
+// It is required because smart-pointers call "delete" by default and we need "CloseHandle". It is used on WINAPI HANDLES.
 
 namespace memory
 {
@@ -50,9 +52,9 @@ namespace memory
     public:
         // Acquires the process-id and opens the handle based on the process-name. 
         //Functions labled as "noexcept(false)" mean that it will throw a exception upon failure. Regular "noexcepts" are safe to use without any try/catch handling.
-        struct ConstructProcessName {};
-        struct ConstructWindowName {};
-        struct ConstructProcessID {};
+        struct ConstructProcessName{};
+        struct ConstructWindowName{};
+        struct ConstructProcessID{};
 
         explicit SafeMemory(std::wstring_view process_name, const SafeMemory_Access processFlags, ConstructProcessName) noexcept(false)
         {
