@@ -7,7 +7,7 @@
 - Aim hack
 
 #### How to use:
-- Build the project
+- Build the project (C++17 standard)
 - Run CS:GO
 - Run the .exe
 - Press INSERT to toggle wallhack on/off

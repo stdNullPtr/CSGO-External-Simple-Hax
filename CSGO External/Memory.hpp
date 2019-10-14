@@ -93,7 +93,7 @@ namespace memory
         std::uint32_t m_processID = 0;
     private:
         // Acquires the process id by process-name.
-        static std::optional<std::uint32_t> AcquireProcessID(const std::wstring_view process_name) noexcept
+        std::optional<std::uint32_t> AcquireProcessID(const std::wstring_view process_name) noexcept
         {
             PROCESSENTRY32W processEntry;
             const memory::detail::unique_handle snapshot_handle(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
@@ -115,7 +115,7 @@ namespace memory
         }
         // Acquires the process id by the window-name.
         // We cannot use "c_str" to return a null-terminated character array like we would with a regular std::string.
-        static std::optional<std::uint32_t> AcquireProcessIDByWindowName(const std::wstring& window_name) noexcept
+        std::optional<std::uint32_t> AcquireProcessIDByWindowName(const std::wstring& window_name) noexcept
         {
             DWORD temp_process_id = 0;
 
