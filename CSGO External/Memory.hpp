@@ -142,7 +142,7 @@ namespace memory
             return true;
         }
         // Creates a handle.
-        std::optional<memory::detail::unique_handle> CreateProcessHandle(const std::uint32_t process_id, const DWORD processFlags) const noexcept
+        [[nodiscard]] std::optional<memory::detail::unique_handle> CreateProcessHandle(const std::uint32_t process_id, const DWORD processFlags) const noexcept
         {
             // Passes the ownership to the main handle.
             memory::detail::unique_handle processHandle(OpenProcess(processFlags, false, process_id));
@@ -177,7 +177,7 @@ namespace memory
     public:
         // RPM/WPM 
         template<typename T>
-        std::optional<T> Read(const std::uintptr_t address_ptr) const noexcept(false)
+        [[nodiscard]] std::optional<T> Read(const std::uintptr_t address_ptr) const noexcept(false)
         {
             T length;
 

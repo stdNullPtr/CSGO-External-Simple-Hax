@@ -208,7 +208,8 @@ void GetClosestEnt(const Vector& currentAng, int& index, const CSGOMemory& mem)
 
     for (size_t i = 0; i < g_playerList.size(); i++)
     {
-        g_playerList.at(i).Update(i + 1, mem);
+        if (!g_playerList.at(i).Update(i + 1, mem))
+            continue;
 
         if (g_playerList.at(i).m_plrData.m_iTeamNum == g_localPlayer.m_plrData.m_iTeamNum)
             continue;
@@ -234,7 +235,7 @@ void GetClosestEnt(const Vector& currentAng, int& index, const CSGOMemory& mem)
 
 void AimLoop(const CSGOMemory& mem)
 {
-    if (!GetAsyncKeyState(VK_MBUTTON)) return;
+    if (!GetAsyncKeyState(0x43 /*c*/)) return;
 
     const uint32_t clientState = *mem.Read<uint32_t>(mem.GetEngineBase() + dwClientState);
     Vector currentAng = *mem.Read<Vector>(clientState + dwClientState_ViewAngles);
@@ -343,15 +344,15 @@ void UpdatePlayerList(const CSGOMemory& mem)
 
 void MainLoop(const CSGOMemory& mem)
 {
-    std::cout << "Started main loop, press x to exit" << std::endl;
+    std::cout << "Started main loop, press F3 to exit" << std::endl;
 
     UpdatePlayerList(mem);
 
     int cacheTimer = 1337;
     while (true)
     {
-        // exit the cheat when we press 'x'
-        if (GetAsyncKeyState(0x58 /*x*/))
+        // exit the cheat when we press 'F3'
+        if (GetAsyncKeyState(VK_F3))
             break;
 
         if (cacheTimer++ >= 200)
