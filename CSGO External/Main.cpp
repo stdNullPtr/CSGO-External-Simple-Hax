@@ -235,7 +235,7 @@ void GetClosestEnt(const Vector& currentAng, int& index, const CSGOMemory& mem)
 
 void AimLoop(const CSGOMemory& mem)
 {
-    if (!GetAsyncKeyState(0x43 /*c*/)) return;
+    if (!GetAsyncKeyState(VK_MBUTTON /*middle mouse*/)) return;
 
     const uint32_t clientState = *mem.Read<uint32_t>(mem.GetEngineBase() + dwClientState);
     Vector currentAng = *mem.Read<Vector>(clientState + dwClientState_ViewAngles);

@@ -15,9 +15,9 @@ namespace csgo_memory
             if (!temp_engineBase.has_value())
                 throw std::system_error(GetLastError(), std::system_category(), "Engine.dll not found!");
 
-            const std::optional<uint32_t> temp_clientBase = GetModuleBaseAddress(L"client_panorama.dll");
+            const std::optional<uint32_t> temp_clientBase = GetModuleBaseAddress(L"client.dll");
             if (!temp_clientBase.has_value())
-                throw std::system_error(GetLastError(), std::system_category(), "Client.dll not found!");
+                throw std::system_error(GetLastError(), std::system_category(), "client_panorama.dll not found!");
 
             this->m_engineBase = temp_engineBase.value();
             this->m_clientBase = temp_clientBase.value();
