@@ -21,7 +21,7 @@ Easiest way to achieve that is with 'hazedumer'
 #### About the cheat
 The entire idea of the cheat is educational (believe it or not).
 It's a nice way to learn how to manipulate game memory and learn some math concepts in a 3D space (Damn you CalcAngle and Vectors...)
-It was developed and tested purely AGAINST BOTS (a couple of times on community servers .. oopsie) and never in competitive games.
+It was developed and tested purely AGAINST BOTS and never in competitive games.
 Special thanks to laxodev for the memory manager done the right way -> https://github.com/laxodev/RAII-WINAPI-Memory-Manager
 
 #### Current state
