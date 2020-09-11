@@ -25,7 +25,7 @@ It was developed and tested purely AGAINST BOTS and never in competitive games.
 Special thanks to laxodev for the memory manager done the right way -> https://github.com/laxodev/RAII-WINAPI-Memory-Manager
 
 #### Current state
-Currently the only optimized part of the cheat is the Memory Manager. Heavy refactoring on everything else is needed since there are lots of bad practises and ... everything is inside "main.cpp"...
+Currently the only optimized part of the cheat is the Memory Manager. Heavy refactoring on everything else is needed since there are lots of bad practises.
 
 #### Detection status
 Currently undetected by VAC but since I am releasing it publicly use at your own risk!
