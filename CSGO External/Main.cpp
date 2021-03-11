@@ -344,7 +344,7 @@ void UpdatePlayerList(const CSGOMemory& mem)
 
 void MainLoop(const CSGOMemory& mem)
 {
-    std::cout << "Started main loop, press F3 to exit" << std::endl;
+    std::cout << "Started main loop!\nF3 to exit\nINSERT to enable walls\nHold MIDDLE MOUSE to enter aimLoop" << std::endl;
 
     UpdatePlayerList(mem);
 

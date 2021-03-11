@@ -1,11 +1,13 @@
 #pragma once
 #include <cstdint>
 
-// 2020-07-24 16:11:35.546097200 UTC
+// 2021-03-03 09:23:16.240579 UTC
 
-namespace offsets {
-    constexpr int64_t timestamp = 1595607095;
-    namespace netvars {
+namespace offsets
+{
+    constexpr int64_t timestamp = 1614763396;
+    namespace netvars
+    {
         constexpr ptrdiff_t cs_gamerules_data = 0x0;
         constexpr ptrdiff_t m_ArmorValue = 0xB378;
         constexpr ptrdiff_t m_Collision = 0x320;
@@ -14,13 +16,15 @@ namespace offsets {
         constexpr ptrdiff_t m_MoveType = 0x25C;
         constexpr ptrdiff_t m_OriginalOwnerXuidHigh = 0x31C4;
         constexpr ptrdiff_t m_OriginalOwnerXuidLow = 0x31C0;
-        constexpr ptrdiff_t m_SurvivalGameRuleDecisionTypes = 0x1320;
-        constexpr ptrdiff_t m_SurvivalRules = 0xCF8;
+        constexpr ptrdiff_t m_SurvivalGameRuleDecisionTypes = 0x1328;
+        constexpr ptrdiff_t m_SurvivalRules = 0xD00;
         constexpr ptrdiff_t m_aimPunchAngle = 0x302C;
         constexpr ptrdiff_t m_aimPunchAngleVel = 0x3038;
         constexpr ptrdiff_t m_angEyeAnglesX = 0xB37C;
         constexpr ptrdiff_t m_angEyeAnglesY = 0xB380;
-        constexpr ptrdiff_t m_bBombPlanted = 0x99D;
+        constexpr ptrdiff_t m_bBombDefused = 0x29B0;
+        constexpr ptrdiff_t m_bBombPlanted = 0x9A5;
+        constexpr ptrdiff_t m_bBombTicking = 0x2980;
         constexpr ptrdiff_t m_bFreezePeriod = 0x20;
         constexpr ptrdiff_t m_bGunGameImmunity = 0x3944;
         constexpr ptrdiff_t m_bHasDefuser = 0xB388;
@@ -29,7 +33,7 @@ namespace offsets {
         constexpr ptrdiff_t m_bIsDefusing = 0x3930;
         constexpr ptrdiff_t m_bIsQueuedMatchmaking = 0x74;
         constexpr ptrdiff_t m_bIsScoped = 0x3928;
-        constexpr ptrdiff_t m_bIsValveDS = 0x75;
+        constexpr ptrdiff_t m_bIsValveDS = 0x7C;
         constexpr ptrdiff_t m_bSpotted = 0x93D;
         constexpr ptrdiff_t m_bSpottedByMask = 0x980;
         constexpr ptrdiff_t m_bStartedArming = 0x33F0;
@@ -56,17 +60,19 @@ namespace offsets {
         constexpr ptrdiff_t m_flSimulationTime = 0x268;
         constexpr ptrdiff_t m_flTimerLength = 0x2994;
         constexpr ptrdiff_t m_hActiveWeapon = 0x2EF8;
+        constexpr ptrdiff_t m_hBombDefuser = 0x29B4;
         constexpr ptrdiff_t m_hMyWeapons = 0x2DF8;
         constexpr ptrdiff_t m_hObserverTarget = 0x338C;
         constexpr ptrdiff_t m_hOwner = 0x29CC;
         constexpr ptrdiff_t m_hOwnerEntity = 0x14C;
+        constexpr ptrdiff_t m_hViewModel = 0x32F8;
         constexpr ptrdiff_t m_iAccountID = 0x2FC8;
         constexpr ptrdiff_t m_iClip1 = 0x3264;
         constexpr ptrdiff_t m_iCompetitiveRanking = 0x1A84;
         constexpr ptrdiff_t m_iCompetitiveWins = 0x1B88;
         constexpr ptrdiff_t m_iCrosshairId = 0xB3E4;
+        constexpr ptrdiff_t m_iDefaultFOV = 0x332C;
         constexpr ptrdiff_t m_iEntityQuality = 0x2FAC;
-        constexpr ptrdiff_t m_iFOV = 0x31E4;
         constexpr ptrdiff_t m_iFOVStart = 0x31E8;
         constexpr ptrdiff_t m_iGlowIndex = 0xA438;
         constexpr ptrdiff_t m_iHealth = 0x100;
@@ -78,11 +84,13 @@ namespace offsets {
         constexpr ptrdiff_t m_iState = 0x3258;
         constexpr ptrdiff_t m_iTeamNum = 0xF4;
         constexpr ptrdiff_t m_lifeState = 0x25F;
+        constexpr ptrdiff_t m_nBombSite = 0x2984;
         constexpr ptrdiff_t m_nFallbackPaintKit = 0x31C8;
         constexpr ptrdiff_t m_nFallbackSeed = 0x31CC;
         constexpr ptrdiff_t m_nFallbackStatTrak = 0x31D4;
         constexpr ptrdiff_t m_nForceBone = 0x268C;
         constexpr ptrdiff_t m_nTickBase = 0x3430;
+        constexpr ptrdiff_t m_nViewModelIndex = 0x29C0;
         constexpr ptrdiff_t m_rgflCoordinateFrame = 0x444;
         constexpr ptrdiff_t m_szCustomName = 0x303C;
         constexpr ptrdiff_t m_szLastPlaceName = 0x35B4;
@@ -91,64 +99,66 @@ namespace offsets {
         constexpr ptrdiff_t m_vecVelocity = 0x114;
         constexpr ptrdiff_t m_vecViewOffset = 0x108;
         constexpr ptrdiff_t m_viewPunchAngle = 0x3020;
+        constexpr ptrdiff_t m_zoomLevel = 0x33D0;
     } // namespace netvars
-    namespace signatures {
+    namespace signatures
+    {
         constexpr ptrdiff_t anim_overlays = 0x2980;
-        constexpr ptrdiff_t clientstate_choked_commands = 0x4D28;
+        constexpr ptrdiff_t clientstate_choked_commands = 0x4D30;
         constexpr ptrdiff_t clientstate_delta_ticks = 0x174;
-        constexpr ptrdiff_t clientstate_last_outgoing_command = 0x4D24;
+        constexpr ptrdiff_t clientstate_last_outgoing_command = 0x4D2C;
         constexpr ptrdiff_t clientstate_net_channel = 0x9C;
         constexpr ptrdiff_t convar_name_hash_table = 0x2F0F8;
-        constexpr ptrdiff_t dwClientState = 0x58ADD4;
+        constexpr ptrdiff_t dwClientState = 0x58EFE4;
         constexpr ptrdiff_t dwClientState_GetLocalPlayer = 0x180;
-        constexpr ptrdiff_t dwClientState_IsHLTV = 0x4D40;
+        constexpr ptrdiff_t dwClientState_IsHLTV = 0x4D48;
         constexpr ptrdiff_t dwClientState_Map = 0x28C;
         constexpr ptrdiff_t dwClientState_MapDirectory = 0x188;
         constexpr ptrdiff_t dwClientState_MaxPlayer = 0x388;
-        constexpr ptrdiff_t dwClientState_PlayerInfo = 0x52B8;
+        constexpr ptrdiff_t dwClientState_PlayerInfo = 0x52C0;
         constexpr ptrdiff_t dwClientState_State = 0x108;
-        constexpr ptrdiff_t dwClientState_ViewAngles = 0x4D88;
-        constexpr ptrdiff_t dwEntityList = 0x4D5348C;
-        constexpr ptrdiff_t dwForceAttack = 0x31849E4;
-        constexpr ptrdiff_t dwForceAttack2 = 0x31849F0;
-        constexpr ptrdiff_t dwForceBackward = 0x3184A38;
-        constexpr ptrdiff_t dwForceForward = 0x3184A14;
-        constexpr ptrdiff_t dwForceJump = 0x51FD154;
-        constexpr ptrdiff_t dwForceLeft = 0x3184A2C;
-        constexpr ptrdiff_t dwForceRight = 0x3184A50;
-        constexpr ptrdiff_t dwGameDir = 0x6296F8;
-        constexpr ptrdiff_t dwGameRulesProxy = 0x527044C;
-        constexpr ptrdiff_t dwGetAllClasses = 0xD652AC;
-        constexpr ptrdiff_t dwGlobalVars = 0x58AAD8;
-        constexpr ptrdiff_t dwGlowObjectManager = 0x529B2F0;
-        constexpr ptrdiff_t dwInput = 0x51A4A68;
-        constexpr ptrdiff_t dwInterfaceLinkList = 0x907734;
-        constexpr ptrdiff_t dwLocalPlayer = 0xD3EC4C;
-        constexpr ptrdiff_t dwMouseEnable = 0xD447F0;
-        constexpr ptrdiff_t dwMouseEnablePtr = 0xD447C0;
-        constexpr ptrdiff_t dwPlayerResource = 0x3182D70;
-        constexpr ptrdiff_t dwRadarBase = 0x51881FC;
-        constexpr ptrdiff_t dwSensitivity = 0xD4468C;
-        constexpr ptrdiff_t dwSensitivityPtr = 0xD44660;
-        constexpr ptrdiff_t dwSetClanTag = 0x89FB0;
-        constexpr ptrdiff_t dwViewMatrix = 0x4D44DD4;
-        constexpr ptrdiff_t dwWeaponTable = 0x51A5528;
+        constexpr ptrdiff_t dwClientState_ViewAngles = 0x4D90;
+        constexpr ptrdiff_t dwEntityList = 0x4DA2F24;
+        constexpr ptrdiff_t dwForceAttack = 0x31D446C;
+        constexpr ptrdiff_t dwForceAttack2 = 0x31D4478;
+        constexpr ptrdiff_t dwForceBackward = 0x31D44C0;
+        constexpr ptrdiff_t dwForceForward = 0x31D44CC;
+        constexpr ptrdiff_t dwForceJump = 0x524CE84;
+        constexpr ptrdiff_t dwForceLeft = 0x31D44E4;
+        constexpr ptrdiff_t dwForceRight = 0x31D44D8;
+        constexpr ptrdiff_t dwGameDir = 0x62D7F8;
+        constexpr ptrdiff_t dwGameRulesProxy = 0x52C016C;
+        constexpr ptrdiff_t dwGetAllClasses = 0xDB2FAC;
+        constexpr ptrdiff_t dwGlobalVars = 0x58ECE8;
+        constexpr ptrdiff_t dwGlowObjectManager = 0x52EB518;
+        constexpr ptrdiff_t dwInput = 0x51F4508;
+        constexpr ptrdiff_t dwInterfaceLinkList = 0x946254;
+        constexpr ptrdiff_t dwLocalPlayer = 0xD8B2DC;
+        constexpr ptrdiff_t dwMouseEnable = 0xD90E80;
+        constexpr ptrdiff_t dwMouseEnablePtr = 0xD90E50;
+        constexpr ptrdiff_t dwPlayerResource = 0x31D27E0;
+        constexpr ptrdiff_t dwRadarBase = 0x51D7C9C;
+        constexpr ptrdiff_t dwSensitivity = 0xD90D1C;
+        constexpr ptrdiff_t dwSensitivityPtr = 0xD90CF0;
+        constexpr ptrdiff_t dwSetClanTag = 0x8A1A0;
+        constexpr ptrdiff_t dwViewMatrix = 0x4D94824;
+        constexpr ptrdiff_t dwWeaponTable = 0x51F4FC8;
         constexpr ptrdiff_t dwWeaponTableIndex = 0x325C;
-        constexpr ptrdiff_t dwYawPtr = 0xD44450;
-        constexpr ptrdiff_t dwZoomSensitivityRatioPtr = 0xD49698;
-        constexpr ptrdiff_t dwbSendPackets = 0xD415A;
-        constexpr ptrdiff_t dwppDirect3DDevice9 = 0xA7030;
-        constexpr ptrdiff_t find_hud_element = 0x2CA43630;
-        constexpr ptrdiff_t force_update_spectator_glow = 0x3A2472;
+        constexpr ptrdiff_t dwYawPtr = 0xD90AE0;
+        constexpr ptrdiff_t dwZoomSensitivityRatioPtr = 0xD95D80;
+        constexpr ptrdiff_t dwbSendPackets = 0xD745A;
+        constexpr ptrdiff_t dwppDirect3DDevice9 = 0xA7050;
+        constexpr ptrdiff_t find_hud_element = 0x50A7E320;
+        constexpr ptrdiff_t force_update_spectator_glow = 0x3AD962;
         constexpr ptrdiff_t interface_engine_cvar = 0x3E9EC;
-        constexpr ptrdiff_t is_c4_owner = 0x3AEF10;
+        constexpr ptrdiff_t is_c4_owner = 0x3BA430;
         constexpr ptrdiff_t m_bDormant = 0xED;
         constexpr ptrdiff_t m_flSpawnTime = 0xA370;
         constexpr ptrdiff_t m_pStudioHdr = 0x294C;
-        constexpr ptrdiff_t m_pitchClassPtr = 0x5188498;
-        constexpr ptrdiff_t m_yawClassPtr = 0xD44450;
-        constexpr ptrdiff_t model_ambient_min = 0x58DE4C;
-        constexpr ptrdiff_t set_abs_angles = 0x1D63E0;
-        constexpr ptrdiff_t set_abs_origin = 0x1D6220;
+        constexpr ptrdiff_t m_pitchClassPtr = 0x51D7F38;
+        constexpr ptrdiff_t m_yawClassPtr = 0xD90AE0;
+        constexpr ptrdiff_t model_ambient_min = 0x59205C;
+        constexpr ptrdiff_t set_abs_angles = 0x1DF9C0;
+        constexpr ptrdiff_t set_abs_origin = 0x1DF800;
     } // namespace signatures
 } // namespace hazedumper
