@@ -12,7 +12,7 @@
 - Run the .exe
 - Press INSERT to toggle wallhack on/off
 - Hold MIDDLE mouse button to activate aimlocking
-- Press 'x' to safely shutdown the process
+- Press 'F3' to safely shutdown the process
 
 #### About offsets
 I will not be updating memory offsets often, you have to update them by yourself if something is not working.
