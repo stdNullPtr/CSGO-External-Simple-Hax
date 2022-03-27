@@ -38,22 +38,17 @@ struct BoneStruct
 
 struct GlowStruct
 {
-    float R;
-    float G;
-    float B;
-    float m_flGlowAlpha;
-    char m_unk[4];
-    float m_flUnk;
-    float m_flBloomAmount;
-    float m_flUnk1;
-    bool m_bRenderWhenOccluded;
-    bool m_bRenderWhenUnoccluded;
-    bool m_bFullBloomRender;
-    char m_unk1;
-    int m_nFullBloomStencilTestValue;
-    int m_nGlowStyle;
-    int m_nSplitScreenSlot;
-    int m_nNextFreeSlot;
+    BYTE _pad_0x0[8];
+    float red;
+    float green;
+    float blue;
+    float alpha;
+    BYTE buffer[16];
+    bool renderWhenOccluded;
+    bool renderWhenUnOccluded;
+    bool fullBloom;
+    BYTE buffer1[5];
+    int glowStyle;
 }g_glowStr;
 
 struct PlayerStruct
@@ -119,16 +114,16 @@ struct Player
 
     void Glow(const float r, const float g, const float b, const CSGOMemory& mem) const
     {
-        const uint32_t glowStructBase = mem.GetGlowBase() + (m_glowIndex * 0x38) + 0x4;
+        const uint32_t glowStructBase = mem.GetGlowBase() + (m_glowIndex * 0x38);
 
         g_glowStr = *mem.Read<GlowStruct>(glowStructBase);
 
-        g_glowStr.R = r;
-        g_glowStr.G = g;
-        g_glowStr.B = b;
-        g_glowStr.m_flGlowAlpha = 0.7f;
-        g_glowStr.m_bRenderWhenOccluded = true;
-        g_glowStr.m_bRenderWhenUnoccluded = false;
+        g_glowStr.red = r;
+        g_glowStr.green = g;
+        g_glowStr.blue = b;
+        g_glowStr.alpha = 0.7f;
+        g_glowStr.renderWhenOccluded = true;
+        g_glowStr.renderWhenUnOccluded = false;
 
         (void)mem.Write<GlowStruct>(glowStructBase, g_glowStr);
     }
